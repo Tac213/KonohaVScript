@@ -1,3 +1,28 @@
-.idea/
-*.log
+# Python byte code file
+__pycache__/
 *.pyc
+
+# Python venv
+.venv
+venv
+
+# vim files
+*.swp
+*.swo
+
+# log files
+*.log
+
+# deployment files
+deployment/build/
+deployment/dist/
+
+# auto-generated resource files
+resource_view.qrc
+resource_view_rc.py
+
+# baked shader files
+*.qsb
+
+# qmlformat file backup
+*.qml~
