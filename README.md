@@ -1,4 +1,4 @@
-# PyChakura
+# KonohaVScript
 
 Visual scripting editor based on Python.
 
