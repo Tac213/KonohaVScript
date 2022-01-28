@@ -53,7 +53,7 @@ class SearchLineEdit(QLineEdit):
 
         real_rect = QRect(
             rect.x() + horizontal_margin,
-            rect.y() + (rect.height() - font_metrics.height() + 1) / 2,
+            int(rect.y() + (rect.height() - font_metrics.height() + 1) / 2),
             rect.width() - 2 * horizontal_margin,
             font_metrics.height()
         )
