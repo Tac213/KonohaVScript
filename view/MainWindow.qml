@@ -1,16 +1,19 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
+import QtQuick.Layouts
+import "NodeGraphComponents" as NodeGraphComponents
 
 ApplicationWindow {
     id: root
 
     title: qsTr("KonohaVScript")
-    width: 800
-    height: 600
+    width: 1334
+    height: 750
     visible: true
 
     menuBar: MenuBar {
+        id: menuBar
         Menu {
             title: qsTr("&File")
             MenuItem {
@@ -28,10 +31,14 @@ ApplicationWindow {
                     toggleConsoleWindow();
                 }
             }
-            // MenuItem {
-            //     text: qsTr("&Toggle JavaScript Console")
-            //     onTriggered: toggleJavaScriptConsoleWindow()
-            // }
+        }
+    }
+    RowLayout {
+        anchors.fill: parent
+        NodeGraphComponents.NodeGraphView {
+            id: nodeGraphView
+            Layout.fillWidth: true
+            Layout.fillHeight: true
         }
     }
 
@@ -48,14 +55,7 @@ ApplicationWindow {
         id: consoleWindow
     }
 
-    // JavaScriptConsole {
-    //     id: jsConsoleWindow
-    // }
     function toggleConsoleWindow() {
         consoleWindow.visible = !consoleWindow.visible;
     }
-
-    // function toggleJavaScriptConsoleWindow() {
-    //     jsConsoleWindow.visible = !jsConsoleWindow.visible;
-    // }
 }
