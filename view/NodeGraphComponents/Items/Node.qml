@@ -56,4 +56,9 @@ Item {
             strokeColor: 'black'
         }
     }
+    MouseArea {
+        id: mouseArea
+        anchors.fill: parent
+        drag.target: parent
+    }
 }
