@@ -44,7 +44,7 @@ Flickable {
             }
         }
         Repeater {
-            model: 50
+            model: 500
 
             NodeGraphItems.Node {
                 x: random(0, scene.width - 300)  // qmllint disable unqualified
@@ -56,13 +56,6 @@ Flickable {
                     return Math.floor(Math.random() * (max - min + 1) + min);
                 }
             }
-        }
-        NodeGraphItems.Line {
-            id: line
-            startX: 30
-            startY: 30
-            endX: 100
-            endY: 100
         }
     }
 

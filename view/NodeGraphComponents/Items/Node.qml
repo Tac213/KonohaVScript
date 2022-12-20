@@ -1,15 +1,13 @@
 import QtQuick
-import QtQuick.Shapes
+import QtQuick.Layouts
 import "." as NodeGraphItems
 
 Item {
     id: root
-    width: 300
+    width: contentLayout.width + this.wingWidth + this.contentOffset * 2
     height: 100
     property real wingWidth: 20
-    property real pinOffset: 30
-    property real pinWidth: 32
-    property real pinHeight: 16
+    property real contentOffset: 15
 
     Rectangle {
         id: wing
@@ -17,60 +15,45 @@ Item {
         height: root.height
         color: 'LightCoral'
     }
-    Shape {
+    NodeGraphItems.StatementNodeShape {
         id: body
-        ShapePath {
-            id: bodyPath
-            fillColor: 'LightSlateGray'
-            startX: root.wingWidth
-            startY: 0
-            PathLine {
-                x: bodyPath.startX + root.pinOffset
-                y: bodyPath.startY
-            }
-            PathLine {
-                x: bodyPath.startX + root.pinOffset + root.pinWidth / 2
-                y: bodyPath.startY + root.pinHeight
-            }
-            PathLine {
-                x: bodyPath.startX + root.pinOffset + root.pinWidth
-                y: bodyPath.startY
-            }
-            PathLine {
-                x: root.width
-                y: bodyPath.startY
-            }
-            PathLine {
-                x: root.width
-                y: bodyPath.startY + root.height
-            }
-            PathLine {
-                x: bodyPath.startX + root.pinOffset + root.pinWidth
-                y: bodyPath.startY + root.height
-            }
-            PathLine {
-                x: bodyPath.startX + root.pinOffset + root.pinWidth / 2
-                y: bodyPath.startY + root.height + root.pinHeight
-            }
-            PathLine {
-                x: bodyPath.startX + root.pinOffset
-                y: bodyPath.startY + root.height
-            }
-            PathLine {
-                x: bodyPath.startX
-                y: bodyPath.startY + root.height
-            }
-            PathLine {
-                x: bodyPath.startX
-                y: bodyPath.startY
-            }
-        }
+        x: root.wingWidth
+        y: 0
+        width: root.width - root.wingWidth
+        height: root.height
+        fillColor: 'LightSlateGray'
     }
-    Text {
-        text: 'Hello World'
-        color: 'white'
-        x: root.wingWidth + root.pinOffset
+    RowLayout {
+        id: contentLayout
+        x: root.wingWidth + root.contentOffset
         y: root.height / 2 - this.height / 2
-        font.pixelSize: 24
+        Text {
+            text: 'Hello World'
+            color: 'white'
+            font.pixelSize: 24
+        }
+        NodeGraphItems.ExpressionNodeShape {
+            id: parameter0
+            x: 100
+            y: 20
+            width: 100
+            height: root.height - 40
+            fillColor: 'white'
+            strokeColor: 'black'
+        }
+        Text {
+            text: 'with'
+            color: 'white'
+            font.pixelSize: 24
+        }
+        NodeGraphItems.ExpressionNodeShape {
+            id: parameter1
+            x: 100
+            y: 20
+            width: 100
+            height: root.height - 40
+            fillColor: 'white'
+            strokeColor: 'black'
+        }
     }
 }
