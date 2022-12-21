@@ -59,6 +59,22 @@ Flickable {
         }
     }
 
+    Connections {
+        id: nodeClassListConnection
+        target: nodeClassList  // qmllint disable unqualified
+    }
+
+    Repeater {
+        model: nodeClassListConnection.target
+
+        Text {
+            required property string nodeName
+            x: 30
+            y: 40
+            text: this.nodeName
+        }
+    }
+
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.RightButton
