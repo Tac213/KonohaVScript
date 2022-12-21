@@ -5,4 +5,6 @@
 
 class BaseNode(object):
 
-    NODE_NAME = ''
+    NODE_NAME = 'Unknown'
+    NODE_CATEGORY = ''
+    NODE_CATEGORY_SPLITTER = '|'

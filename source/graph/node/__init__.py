@@ -2,21 +2,27 @@
 # author: Tac
 # contact: cookiezhx@163.com
 
+import typing
 import importlib
-import bridge
+from . import base_node
 
 ALL_NODE_MODULES = (
     'builtin_function_node',
     'literal_node',
 )
 
+node_class_info = {}  # type: typing.Dict[str, type[base_node.BaseNode]]
+node_class_list = []  # type: typing.List[type[base_node.BaseNode]]
+
 
 def kvs_node(node_class):
     """
     decorate a node class to register node
     """
-    if bridge.node_class_list:
-        bridge.node_class_list.add_node_class(node_class)
+    assert issubclass(node_class, base_node.BaseNode)
+    assert node_class.__name__ not in node_class_info
+    node_class_info[node_class.__name__] = node_class
+    node_class_list.append(node_class)
     return node_class
 
 

@@ -5,6 +5,7 @@
 import os
 
 from const import path_const, app_const
+from graph import node
 from log import logger as logger_module
 from log import log_manager
 
@@ -13,6 +14,7 @@ logger = None  # type: logger_module.Logger
 
 def initialize() -> None:
     _init_logger()
+    node.register_nodes()
 
 
 def _init_logger() -> None:
