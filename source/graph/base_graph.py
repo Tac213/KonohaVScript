@@ -7,24 +7,17 @@ import typing
 import shortuuid
 from PySide6 import QtCore
 
+from utils import advanced_qt_property
 from .node import base_node
 
 
-class BaseGraph(QtCore.QObject):
+class BaseGraph(QtCore.QObject, metaclass=advanced_qt_property.QObjectMeta):  # pylint: disable=invalid-metaclass
 
-    nodes_changed = QtCore.Signal(name='nodesChanged')
+    nodes = advanced_qt_property.AdvancedQtProperty('QVariant')  # type: typing.Dict[str, base_node.BaseNode]
 
     def __init__(self, parent: typing.Optional[QtCore.QObject] = None) -> None:
         super().__init__(parent)
         self._nodes = {}
-
-    def get_nodes(self) -> typing.Dict[str, base_node.BaseNode]:
-        return self._nodes
-
-    def set_nodes(self, nodes: typing.Dict[str, base_node.BaseNode]) -> None:
-        self._nodes = nodes
-
-    nodes = QtCore.Property('QVariant', get_nodes, set_nodes, notify=nodes_changed)
 
     @QtCore.Slot(str, result=bool)
     def check_node_id(self, node_id) -> bool:
