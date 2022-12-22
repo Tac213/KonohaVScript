@@ -24,7 +24,7 @@ Flickable {
     }
     NodeGraphContextMenu {
         id: nodeGraphContextMenu
-        scene: scene
+        handler: handler
     }
 
     MouseArea {

@@ -6,8 +6,9 @@ Item {
     id: root
     width: contentLayout.width + this.wingWidth + this.contentOffset * 2
     height: 100
-    property int nodeID: -1
-    property string nodeClassName: ''
+    required property var model
+    property string nodeID: model.node_id
+    property string nodeClassName: model.node_class_name
     property real wingWidth: 20
     property real contentOffset: 15
 

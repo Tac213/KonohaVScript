@@ -16,7 +16,6 @@ Item {
     property real zoomStride: 0.1
     property var scaler: sceneScaler
     property var nodes: new Map()
-    property int nodeID: -1
 
     Canvas {
         id: grid
@@ -42,13 +41,12 @@ Item {
         }
     }
 
-    function createNode(nodeClassName, posX, posY) {
+    function createNode(nodeModel) {
         new ComponentCreation.ComponentCreation('qrc:/view/NodeGraphComponents/Items/Node.qml', this, {
-            "nodeClassName": nodeClassName,
-            "x": posX,
-            "y": posY
+            "model": nodeModel,
+            "x": nodeModel.pos_x,
+            "y": nodeModel.pos_y
         }, node => {
-            node.nodeID = ++this.nodeID;
             this.nodes[node.nodeID] = node;
         });
     }

@@ -4,6 +4,7 @@
 
 import typing
 import importlib
+from PySide6 import QtQml
 from . import base_node
 
 ALL_NODE_MODULES = (
@@ -23,6 +24,7 @@ def kvs_node(node_class: type[base_node.BaseNode]) -> type[base_node.BaseNode]:
     assert node_class.__name__ not in node_class_info
     node_class_info[node_class.__name__] = node_class
     node_class_list.append(node_class)
+    QtQml.qmlRegisterType(node_class, 'Python.NodeModels', 1, 0, node_class.__name__)
     return node_class
 
 

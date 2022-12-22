@@ -7,7 +7,7 @@ Menu {
     id: root
     property var nodeActions: new Map()
     property var nodeCategoryInfo: undefined
-    property var scene: undefined
+    required property var handler
     // qmllint disable import type
     NodeClassHelper {
         id: nodeClassHelper
@@ -35,7 +35,7 @@ Menu {
             }, action => {
                 this.nodeActions[action.nodeClassName] = action;
                 action.triggered.connect(() => {
-                        this.scene.createNode(action.nodeClassName, (this.parent.contentX + this.x) / this.scene.currentZoom, (this.parent.contentY + this.y) / this.scene.currentZoom);
+                        this.handler.createNode(action.nodeClassName, (this.parent.contentX + this.x) / this.handler.scene.currentZoom, (this.parent.contentY + this.y) / this.handler.scene.currentZoom);
                     });
             });
         }
