@@ -17,11 +17,13 @@ Menu {
         id: searchInput
         placeholderText: qsTr('Search...')
         focus: true
+        onTextEdited: () => {
+            root.build(this.text);
+        }
     }
     Component.onCompleted: () => {
         this.createNodeActions();
         this.nodeCategoryInfo = nodeClassHelper.get_node_category_info();
-        this.build();
     }
 
     function createNodeActions() {
@@ -40,6 +42,7 @@ Menu {
     }
 
     function buildAndPopup() {
+        searchInput.text = '';
         this.build();
         this.popup();
     }
@@ -47,8 +50,7 @@ Menu {
     function build(filterText = '') {
         this.clear();
         const buildFunction = (data, parentMenu) => {
-            for (const itemName in data) {
-                const item = data[itemName];
+            for (const [itemName, item] of Object.entries(data)) {
                 if (typeof item === 'boolean') {
                     parentMenu.addAction(this.nodeActions[itemName]);
                 } else if (typeof item === 'object') {
@@ -62,6 +64,29 @@ Menu {
             }
         };
         if (filterText) {
+            let allActions = {};
+            const filterItems = data => {
+                let res = {};
+                for (const [itemName, item] of Object.entries(data)) {
+                    if (typeof item === 'boolean') {
+                        if (this._filterAction(filterText, itemName)) {
+                            res[itemName] = item;
+                            allActions[itemName] = item;
+                        }
+                    } else if (typeof item === 'object') {
+                        const childRes = filterItems(item);
+                        if (Object.keys(childRes).length) {
+                            res[itemName] = childRes;
+                        }
+                    }
+                }
+                return res;
+            };
+            let filteredItems = filterItems(this.nodeCategoryInfo);
+            if (Object.keys(allActions).length <= 10) {
+                filteredItems = allActions;
+            }
+            buildFunction(filteredItems, this);
         } else {
             buildFunction(this.nodeCategoryInfo, this);
         }
@@ -79,5 +104,11 @@ Menu {
                 break;
             }
         }
+    }
+
+    function _filterAction(filterText, actionName) {
+        const lowerFilterText = filterText.toLowerCase();
+        const lowerActionName = actionName.toLowerCase();
+        return lowerActionName.includes(lowerFilterText);
     }
 }
