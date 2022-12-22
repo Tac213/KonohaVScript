@@ -14,11 +14,15 @@ class BaseNode(QtCore.QObject, metaclass=advanced_qt_property.QObjectMeta):  # p
     NODE_NAME = 'Unknown'
     NODE_CATEGORY = ''
     NODE_CATEGORY_SPLITTER = '|'
+    NODE_DESCRIPTION = ''
+    IS_STATEMENT = True
 
     node_class_name = advanced_qt_property.AdvancedQtProperty(str)  # type: str
     node_id = advanced_qt_property.AdvancedQtProperty(str)  # type: str
     pos_x = advanced_qt_property.AdvancedQtProperty(float)  # type: float
     pos_y = advanced_qt_property.AdvancedQtProperty(float)  # type: float
+    node_description = advanced_qt_property.AdvancedQtProperty(str)  # type: str
+    is_statement = advanced_qt_property.AdvancedQtProperty(bool)  # type: bool
 
     def __init__(self, parent: typing.Optional[QtCore.QObject] = None) -> None:
         super().__init__(parent)
@@ -26,3 +30,5 @@ class BaseNode(QtCore.QObject, metaclass=advanced_qt_property.QObjectMeta):  # p
         self._node_id = ''
         self._pos_x = 0.0
         self._pos_y = 0.0
+        self._node_description = self.NODE_DESCRIPTION
+        self._is_statement = self.IS_STATEMENT

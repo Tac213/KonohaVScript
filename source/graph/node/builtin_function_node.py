@@ -11,3 +11,4 @@ class Print(base_node.BaseNode):
 
     NODE_NAME = 'print'
     NODE_CATEGORY = 'builtin functions'
+    NODE_DESCRIPTION = 'print {{ value }}'

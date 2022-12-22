@@ -11,3 +11,5 @@ class StringLiteral(base_node.BaseNode):
 
     NODE_NAME = 'string literal'
     NODE_CATEGORY = 'literals'
+    NODE_DESCRIPTION = '{{ __raw_input__ }}'
+    IS_STATEMENT = False
