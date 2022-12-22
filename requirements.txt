@@ -5,6 +5,7 @@ dill==0.3.6
 future==0.18.2
 isort==5.10.1
 lazy-object-proxy==1.8.0
+macholib==1.16.2
 mccabe==0.7.0
 pefile==2022.5.30
 platformdirs==2.5.4
@@ -16,6 +17,7 @@ PySide6-Addons==6.4.1
 PySide6-Essentials==6.4.1
 pywin32-ctypes==0.2.0
 shiboken6==6.4.1
+shortuuid==1.0.11
 tomlkit==0.11.6
 wrapt==1.14.1
 yapf==0.32.0

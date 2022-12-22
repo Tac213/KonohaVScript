@@ -1,4 +1,5 @@
 import QtQuick
+import Python.GraphModels  // qmllint disable import
 
 Flickable {
     id: root
@@ -9,6 +10,17 @@ Flickable {
     contentY: 0.5 * scene.height - 0.5 * this.height
     NodeGraphScene {
         id: scene
+    }
+    // qmllint disable import type
+    ScriptGraph {
+        id: graph
+    }
+    // qmllint enable import type
+    NodeGraphHandler {
+        id: handler
+        scene: scene
+        graph: graph
+        view: root
     }
     NodeGraphContextMenu {
         id: nodeGraphContextMenu

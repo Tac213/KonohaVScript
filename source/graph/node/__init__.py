@@ -15,7 +15,7 @@ node_class_info = {}  # type: typing.Dict[str, type[base_node.BaseNode]]
 node_class_list = []  # type: typing.List[type[base_node.BaseNode]]
 
 
-def kvs_node(node_class):
+def kvs_node(node_class: type[base_node.BaseNode]) -> type[base_node.BaseNode]:
     """
     decorate a node class to register node
     """
@@ -34,3 +34,7 @@ def register_nodes() -> None:
     """
     for module_name in ALL_NODE_MODULES:
         importlib.import_module(f'.{module_name}', __name__)
+
+
+def get_node_class(node_class_name: str) -> typing.Optional[type[base_node.BaseNode]]:
+    return node_class_info.get(node_class_name)
