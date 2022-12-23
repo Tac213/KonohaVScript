@@ -1,18 +1,27 @@
 import QtQuick
 import QtQuick.Layouts
-import '.' as NodeGraphItems
+import "." as NodeGraphItems
+import "../../script/component-creation.js" as ComponentCreation
 
 Item {
     id: root
-    width: contentLayout.width + this.wingWidth + this.contentOffset * 2
-    height: 100
+    width: this.minimumWidth
+    height: this.minimumHeight
     required property var model
     property string nodeID: model.node_id
     property string nodeClassName: model.node_class_name
     property real wingWidth: 20
-    property real contentOffset: 15
+    property real contentXMargin: 15
+    property real contentYMargin: 20
     property var contentTexts: []
     property var contentArgs: []
+    property var minimumWidth: 200
+    property real minimumHeight: 100
+
+    Drag.active: mouseArea.drag.active
+    Drag.hotSpot.x: this.wingWidth
+    Drag.hotSpot.y: 0
+    Drag.keys: [model.is_statement ? 'kvsStatement' : 'kvsExpression']
 
     Component {
         id: wing
@@ -38,7 +47,7 @@ Item {
         id: expressionBody
         NodeGraphItems.ExpressionNodeShape {
             // id: body
-            // x: root.ingWidth
+            // x: root.wingWidth
             y: 0
             // width: root.width - root.wingWidth
             // height: root.height
@@ -89,13 +98,20 @@ Item {
     }
     RowLayout {
         id: contentLayout
-        x: root.wingWidth + root.contentOffset
+        x: root.wingWidth + root.contentXMargin
         y: root.height / 2 - this.height / 2
     }
     MouseArea {
         id: mouseArea
         anchors.fill: parent
         drag.target: parent
+        onReleased: event => {
+            if (this.parent.Drag.target) {
+                const action = this.parent.Drag.drop();
+                if (action === Qt.MoveAction) {
+                }
+            }
+        }
     }
 
     Component.onCompleted: () => {
@@ -104,23 +120,35 @@ Item {
 
     function createContent() {
         const [textList, argList] = this.parseNodeDescription();
+        let total = 0;
+        let current = 0;
         textList.forEach((text, idx) => {
             if (text) {
-                const textElement = Qt.createQmlObject(
-                    `import QtQuick; Text { text: '${text}'; color: 'white'; font.pixelSize: 24}`,
-                    contentLayout,
-                    `${this.nodeClassName}_${this.nodeID}_ContentText_${idx}_${text}`,
-                );
-                this.contentTexts.push(textElement);
+                new ComponentCreation.ComponentCreation('qrc:/view/NodeGraphComponents/Items/NodeContentText.qml', root, {
+                    "index": idx,
+                    "text": text
+                }, textElement => {
+                    this.contentTexts.push(textElement);
+                    current++;
+                    if (current >= total) {
+                        this.layoutContents();
+                    }
+                });
+                total++;
             }
             if (idx < argList.length) {
                 const argName = argList[idx];
-                const argElement = Qt.createQmlObject(
-                    `import '.'; ExpressionNodeShape { width: 100; height: 60; fillColor: 'white'; strokeColor: 'black'}`,
-                    contentLayout,
-                    `${this.nodeClassName}_${this.nodeID}_ContentArg_${idx}_${argName}`,
-                );
-                this.contentArgs.push(argElement);
+                new ComponentCreation.ComponentCreation('qrc:/view/NodeGraphComponents/Items/NodeContentArgument.qml', root, {
+                    "index": idx,
+                    "argName": argName
+                }, argElement => {
+                    this.contentArgs.push(argElement);
+                    current++;
+                    if (current >= total) {
+                        this.layoutContents();
+                    }
+                });
+                total++;
             }
         });
     }
@@ -139,5 +167,52 @@ Item {
             match = inputArgsRE.exec(this.model.node_description);
         }
         return [textList, argList];
+    }
+
+    function layoutContents() {
+        this.contentTexts.sort((a, b) => a.index - b.index);
+        this.contentArgs.sort((a, b) => a.index - b.index);
+        let textIndex = 0;
+        let argIndex = 0;
+        const contents = [];
+        let width = 0;
+        let height = this.minimumHeight - this.contentYMargin * 2;
+        while (textIndex < this.contentTexts.length || argIndex < this.contentArgs.length) {
+            const currentText = this.contentTexts[textIndex];
+            const currentArg = this.contentArgs[argIndex];
+            if (currentText) {
+                if (currentArg) {
+                    if (currentText.index <= currentArg.index) {
+                        contents.push(currentText);
+                        textIndex++;
+                        width += currentText.width;
+                        height = Math.max(height, currentText.height);
+                    } else {
+                        contents.push(currentArg);
+                        argIndex++;
+                        width += currentArg.width;
+                        height = Math.max(height, currentArg.height);
+                    }
+                } else {
+                    contents.push(currentText);
+                    textIndex++;
+                    width += currentText.width;
+                    height = Math.max(height, currentText.height);
+                }
+            } else if (currentArg) {
+                contents.push(currentArg);
+                argIndex++;
+                width += currentArg.width;
+                height = Math.max(height, currentArg.height);
+            }
+        }
+        this.width = Math.max(this.wingWidth + width + this.contentXMargin * 2, this.minimumWidth);
+        this.height = height + this.contentYMargin * 2;
+        let contentX = this.wingWidth + this.contentXMargin;
+        for (const content of contents) {
+            content.x = contentX;
+            content.y = this.height / 2 - content.height / 2;
+            contentX += content.width;
+        }
     }
 }
