@@ -143,10 +143,11 @@ Window {
             }
         }
     }
+    // qmllint disable type import
     InteractiveInterpreter {
-        // qmllint disable type import
         id: interactiveInterpreter
     }
+    // qmllint enable type import
     Connections {
         target: outputWindowBridge  // qmllint disable unqualified
         function onShowNormalMessage(msg) {

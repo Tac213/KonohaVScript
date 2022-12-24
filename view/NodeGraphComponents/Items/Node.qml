@@ -17,6 +17,7 @@ Item {
     property var minimumWidth: 200
     property real minimumHeight: 100
     property bool snapped: false
+    property string nextNodeID: ''
 
     Drag.active: mouseArea.drag.active
     Drag.hotSpot.x: this.wingWidth
@@ -30,6 +31,32 @@ Item {
             // width: root.wingWidth
             // height: root.height
             color: 'LightCoral'
+        }
+    }
+    Component {
+        id: statementSnapIndicator
+        DropArea {
+            x: 0
+            height: 40
+            keys: ['kvsStatement']
+            onDropped: drop => {
+                if (this.getNode().nextNodeID) {
+                    return;
+                }
+                if (drop.source) {
+                    drop.accept();
+                }
+            }
+            Rectangle {
+                anchors.fill: parent
+                color: 'Aquamarine'
+                visible: parent.containsDrag
+            }
+
+            function getNode() {
+                const loader = this.parent;
+                return loader.parent;
+            }
         }
     }
     Component {
@@ -63,6 +90,14 @@ Item {
         }
     }
     Loader {
+        id: snapIndicatorLoader
+        sourceComponent: root.model.is_statement ? statementSnapIndicator : undefined
+        onLoaded: () => {
+            snapIndicatorWidthBinder.target = this.item;
+            snapIndicatorYBinder.target = this.item;
+        }
+    }
+    Loader {
         id: bodyLoader
         sourceComponent: root.model.is_statement ? statementBody : expressionBody
         onLoaded: () => {
@@ -79,6 +114,16 @@ Item {
     Binding {
         id: wingHeightBinder
         property: 'height'
+        value: root.height
+    }
+    Binding {
+        id: snapIndicatorWidthBinder
+        property: 'width'
+        value: root.width
+    }
+    Binding {
+        id: snapIndicatorYBinder
+        property: 'y'
         value: root.height
     }
     Binding {
@@ -111,8 +156,15 @@ Item {
             if (this.parent.Drag.target) {
                 const action = this.parent.Drag.drop();
                 if (action === Qt.MoveAction) {
-                    const contentArgElement = this.parent.Drag.target.parent;
-                    this.parent.getHandler().snapArgument(this.parent, contentArgElement);
+                    if (this.parent.model.is_statement) {
+                        const upperNode = this.parent.Drag.target.getNode();  // call getNode function on DropArea
+                        const lowerNode = this.parent;
+                        lowerNode.getHandler().snapStatement(upperNode, lowerNode);
+                    } else {
+                        const contentArgElement = this.parent.Drag.target.parent;
+                        const expressionNode = this.parent;
+                        expressionNode.getHandler().snapArgument(expressionNode, contentArgElement);
+                    }
                 }
             }
         }
@@ -217,12 +269,19 @@ Item {
             }
         }
         this.width = Math.max(this.wingWidth + width + this.contentXMargin * 2, this.minimumWidth);
-        this.height = height + this.contentYMargin * 2;
+        const targetHeight = height + this.contentYMargin * 2;
+        const heightDiff = targetHeight - this.height;
+        this.height = targetHeight;
         let contentX = this.wingWidth + this.contentXMargin;
         for (const content of contents) {
             content.x = contentX;
             content.y = this.height / 2 - content.height / 2;
             contentX += content.width;
+        }
+        const nextNode = this.getNextNode();
+        if (nextNode) {
+            nextNode.y += heightDiff;
+            nextNode.updateModelPos();
         }
     }
 
@@ -262,12 +321,20 @@ Item {
     }
 
     function getSnappingNode() {
-        if (this.model.is_statement) {
-            return undefined;
-        }
         if (!this.snapped) {
             return undefined;
         }
+        if (this.model.is_statement) {
+            return this.parent;
+        }
         return this.parent.parent;
+    }
+
+    function getNextNode() {
+        if (!this.nextNodeID) {
+            return undefined;
+        }
+        const scene = this.getScene();
+        return scene.getNode(this.nextNodeID);
     }
 }

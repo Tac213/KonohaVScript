@@ -59,4 +59,8 @@ Item {
     function getHandler() {
         return this.parent.parent.getHandler();
     }
+
+    function getNode(nodeID) {
+        return this.nodes[nodeID];
+    }
 }
