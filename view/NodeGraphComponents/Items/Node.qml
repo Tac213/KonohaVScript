@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Layouts
 import "." as NodeGraphItems
 import "../../script/component-creation.js" as ComponentCreation
 
@@ -17,6 +16,7 @@ Item {
     property var contentArgs: []
     property var minimumWidth: 200
     property real minimumHeight: 100
+    property bool snapped: false
 
     Drag.active: mouseArea.drag.active
     Drag.hotSpot.x: this.wingWidth
@@ -96,20 +96,30 @@ Item {
         property: 'height'
         value: root.height
     }
-    RowLayout {
-        id: contentLayout
-        x: root.wingWidth + root.contentXMargin
-        y: root.height / 2 - this.height / 2
+    NodeGraphItems.NodeContextMenu {
+        id: contextMenu
+        node: root
     }
     MouseArea {
         id: mouseArea
         anchors.fill: parent
-        drag.target: parent
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+        drag.target: parent.snapped ? parent.getDragTarget() : parent
+        preventStealing: true
         onReleased: event => {
+            this.parent.updateModelPos();
             if (this.parent.Drag.target) {
                 const action = this.parent.Drag.drop();
                 if (action === Qt.MoveAction) {
+                    const contentArgElement = this.parent.Drag.target.parent;
+                    this.parent.getHandler().snapArgument(this.parent, contentArgElement);
                 }
+            }
+        }
+        onClicked: event => {
+            if (event.button === Qt.MiddleButton) {
+                contextMenu.popup();
+                event.accepted = true;
             }
         }
     }
@@ -214,5 +224,50 @@ Item {
             content.y = this.height / 2 - content.height / 2;
             contentX += content.width;
         }
+    }
+
+    function getScene() {
+        let candidate = this.parent;
+        while (candidate) {
+            if (candidate.objectName === 'kvsScene') {
+                return candidate;
+            }
+            candidate = candidate.parent;
+        }
+        return null;
+    }
+
+    function getHandler() {
+        const scene = this.getScene();
+        return scene ? scene.getHandler() : null;
+    }
+
+    function updateModelPos() {
+        this.model.pos_x = this.x;
+        this.model.pos_y = this.y;
+    }
+
+    function getDragTarget() {
+        if (!this.snapped) {
+            return this;
+        }
+        let candidate = this.getSnappingNode();
+        while (candidate) {
+            if (!candidate.snapped) {
+                return candidate;
+            }
+            candidate = candidate.getSnappingNode();
+        }
+        return null;
+    }
+
+    function getSnappingNode() {
+        if (this.model.is_statement) {
+            return undefined;
+        }
+        if (!this.snapped) {
+            return undefined;
+        }
+        return this.parent.parent;
     }
 }

@@ -3,6 +3,7 @@ import "../script/component-creation.js" as ComponentCreation
 
 Item {
     id: scene
+    objectName: 'kvsScene'
     width: 12000
     height: 12000
     transform: Scale {
@@ -49,5 +50,13 @@ Item {
         }, node => {
             this.nodes[node.nodeID] = node;
         });
+    }
+
+    function getView() {
+        return this.parent.parent;
+    }
+
+    function getHandler() {
+        return this.parent.parent.getHandler();
     }
 }

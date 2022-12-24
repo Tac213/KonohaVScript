@@ -42,6 +42,10 @@ Flickable {
         }
     }
 
+    function getHandler() {
+        return handler;
+    }
+
     function zoom(bigger, posX, posY) {
         let targetZoom = scene.currentZoom;
         if (bigger) {

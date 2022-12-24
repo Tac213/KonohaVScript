@@ -14,4 +14,41 @@ QtObject {
         this.graph.add_node(nodeID, nodeModel);
         this.scene.createNode(nodeModel);
     }
+
+    function snapArgument(expressionNode, argElement) {
+        if (expressionNode.model.is_statement) {
+            return;
+        }
+        if (expressionNode.snapped) {
+            return;
+        }
+        expressionNode.parent = argElement;
+        expressionNode.x = -expressionNode.wingWidth;
+        expressionNode.y = 0;
+        expressionNode.snapped = true;
+        argElement.width = expressionNode.width - expressionNode.wingWidth;
+        argElement.height = expressionNode.height;
+        argElement.parent.layoutContents();
+        const parentNode = argElement.getNode();
+        parentNode.model.add_input_argument(argElement.argName, expressionNode.nodeID);
+        expressionNode.updateModelPos();
+    }
+
+    function unsnapArgument(expressionNode) {
+        if (expressionNode.model.is_statement) {
+            return;
+        }
+        if (!expressionNode.snapped) {
+            return;
+        }
+        const parentNode = expressionNode.getSnappingNode();
+        const argElement = expressionNode.parent;
+        const scenePos = this.scene.mapFromItem(expressionNode.parent, expressionNode.x, expressionNode.y);
+        expressionNode.parent = this.scene;
+        expressionNode.x = scenePos.x;
+        expressionNode.y = scenePos.y;
+        expressionNode.snapped = false;
+        parentNode.model.remove_input_argument(argElement.argName);
+        expressionNode.updateModelPos();
+    }
 }

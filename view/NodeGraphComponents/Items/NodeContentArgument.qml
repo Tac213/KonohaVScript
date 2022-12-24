@@ -15,14 +15,12 @@ ExpressionNodeShape {
         anchors.fill: parent
         onDropped: drop => {
             if (drop.source) {
-                drop.source.parent = root;
-                drop.source.x = -drop.source.wingWidth;
-                drop.source.y = 0;
-                root.width = drop.source.width - drop.source.wingWidth;
-                root.height = drop.source.height;
-                root.parent.layoutContents();
                 drop.accept();
             }
         }
+    }
+
+    function getNode() {
+        return this.parent;
     }
 }
