@@ -9,6 +9,7 @@ from . import base_node
 
 ALL_NODE_MODULES = (
     'builtin_function_node',
+    'code_block_node',
     'literal_node',
 )
 

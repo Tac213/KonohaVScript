@@ -12,6 +12,7 @@ Item {
     property real wingWidth: 20
     property real contentXMargin: 15
     property real contentYMargin: 20
+    property var blockInfos: [/*{contentWidth: 250, contentHeight: 100, blockHeight: 150}, {contentWidth: 200, contentHeight: 140, blockHeight: 100}*/]  // {contentWidth, contentHeight, blockHeight}
     property var contentTexts: []
     property var contentArgs: []
     property var minimumWidth: 200
@@ -71,6 +72,17 @@ Item {
         }
     }
     Component {
+        id: codeBlockBody
+        NodeGraphItems.CodeBlockNodeShape {
+            // id: body
+            // x: root.wingWidth
+            y: 0
+            // width: root.width - root.wingWidth
+            // height: root.height
+            fillColor: 'LightSlateGray'
+        }
+    }
+    Component {
         id: expressionBody
         NodeGraphItems.ExpressionNodeShape {
             // id: body
@@ -99,11 +111,16 @@ Item {
     }
     Loader {
         id: bodyLoader
-        sourceComponent: root.model.is_statement ? statementBody : expressionBody
+        sourceComponent: root.model.is_statement ? (root.model.is_code_block ? codeBlockBody : statementBody) : expressionBody
         onLoaded: () => {
             bodyXBinder.target = this.item;
             bodyWidthBinder.target = this.item;
-            bodyHeightBinder.target = this.item;
+            if (root.model.is_code_block) {
+                bodyBlockInfosBinder.target = this.item;
+                this.item.heightBinder.target = root;
+            } else {
+                bodyHeightBinder.target = this.item;
+            }
         }
     }
     Binding {
@@ -141,6 +158,11 @@ Item {
         property: 'height'
         value: root.height
     }
+    Binding {
+        id: bodyBlockInfosBinder
+        property: 'blockInfos'
+        value: root.blockInfos
+    }
     NodeGraphItems.NodeContextMenu {
         id: contextMenu
         node: root
@@ -169,6 +191,7 @@ Item {
             }
         }
         onClicked: event => {
+            console.log(bodyLoader.item.height);
             if (event.button === Qt.MiddleButton) {
                 contextMenu.popup();
                 event.accepted = true;

@@ -15,7 +15,9 @@ class BaseNode(QtCore.QObject, metaclass=advanced_qt_property.QObjectMeta):  # p
     NODE_CATEGORY = ''
     NODE_CATEGORY_SPLITTER = '|'
     NODE_DESCRIPTION = ''
+    NODE_BRANCH_DESCRIPTIONS = []
     IS_STATEMENT = True
+    IS_CODE_BLOCK = False
 
     input_args = advanced_qt_property.AdvancedQtProperty('QVariant')  # type: typing.Dict[str, str]
     next_node_id = advanced_qt_property.AdvancedQtProperty(str)  # type: str
@@ -24,7 +26,9 @@ class BaseNode(QtCore.QObject, metaclass=advanced_qt_property.QObjectMeta):  # p
     pos_x = advanced_qt_property.AdvancedQtProperty(float)  # type: float
     pos_y = advanced_qt_property.AdvancedQtProperty(float)  # type: float
     node_description = advanced_qt_property.AdvancedQtProperty(str)  # type: str
+    node_branch_descriptions = advanced_qt_property.AdvancedQtProperty(list)  # type: list
     is_statement = advanced_qt_property.AdvancedQtProperty(bool)  # type: bool
+    is_code_block = advanced_qt_property.AdvancedQtProperty(bool)  # type: bool
 
     def __init__(self, parent: typing.Optional[QtCore.QObject] = None) -> None:
         super().__init__(parent)
@@ -35,7 +39,9 @@ class BaseNode(QtCore.QObject, metaclass=advanced_qt_property.QObjectMeta):  # p
         self._pos_x = 0.0
         self._pos_y = 0.0
         self._node_description = self.NODE_DESCRIPTION
+        self._node_branch_descriptions = self.NODE_BRANCH_DESCRIPTIONS
         self._is_statement = self.IS_STATEMENT
+        self._is_code_block = self.IS_CODE_BLOCK
 
     @QtCore.Slot(str, str)
     def add_input_argument(self, arg_name, arg_node_id) -> None:
