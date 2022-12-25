@@ -7,12 +7,13 @@ Shape {
     property real pinWidth: 32
     property real pinHeight: 16
     property real blockWidth: 50
-    property real lastWidth: 200
-    property real lastHeight: 100
+    property real lastWidth: 100
+    property real lastHeight: 30
     property alias fillColor: bodyPath.fillColor
     property alias strokeColor: bodyPath.strokeColor
     property var blockInfos: []  // {contentWidth, contentHeight, blockHeight}
     property var basePathElements: []
+    property var dynamicPathElements: []
     property alias heightBinder: heightBinder
     ShapePath {
         id: bodyPath
@@ -67,27 +68,36 @@ Shape {
     }
 
     function update() {
+        this.clearDynamicPathElements();
         const blockPathElements = [];
         let currentHeight = bodyPath.startY;
         this.blockInfos.forEach((blockInfo, index) => {
                 if (index === 0) {
-                    blockPathElements.push(Qt.createQmlObject(`import QtQuick; import QtQuick.Shapes; PathLine {x: ${bodyPath.startX + this.pinOffset}; y: ${currentHeight}}`, bodyPath));
-                    blockPathElements.push(Qt.createQmlObject(`import QtQuick; import QtQuick.Shapes; PathLine {x: ${bodyPath.startX + this.pinOffset + this.pinWidth / 2}; y: ${currentHeight + this.pinHeight}}`, bodyPath));
-                    blockPathElements.push(Qt.createQmlObject(`import QtQuick; import QtQuick.Shapes; PathLine {x: ${bodyPath.startX + this.pinOffset + this.pinWidth}; y: ${currentHeight}}`, bodyPath));
-                    blockPathElements.push(Qt.createQmlObject(`import QtQuick; import QtQuick.Shapes; PathLine {x: ${blockInfo.contentWidth}; y: ${currentHeight}}`, bodyPath));
+                    blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${bodyPath.startX + this.pinOffset}; y: ${currentHeight}}`, bodyPath));
+                    blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${bodyPath.startX + this.pinOffset + this.pinWidth / 2}; y: ${currentHeight + this.pinHeight}}`, bodyPath));
+                    blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${bodyPath.startX + this.pinOffset + this.pinWidth}; y: ${currentHeight}}`, bodyPath));
+                    blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${blockInfo.contentWidth}; y: ${currentHeight}}`, bodyPath));
                 } else {
-                    blockPathElements.push(Qt.createQmlObject(`import QtQuick; import QtQuick.Shapes; PathLine {x: ${blockInfo.contentWidth}; y: ${currentHeight}}`, bodyPath));
+                    blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${blockInfo.contentWidth}; y: ${currentHeight}}`, bodyPath));
                 }
                 currentHeight += blockInfo.contentHeight;
-                blockPathElements.push(Qt.createQmlObject(`import QtQuick; import QtQuick.Shapes; PathLine {x: ${blockInfo.contentWidth}; y: ${currentHeight}}`, bodyPath));
-                blockPathElements.push(Qt.createQmlObject(`import QtQuick; import QtQuick.Shapes; PathLine {x: ${bodyPath.startX + this.blockWidth + this.pinOffset + this.pinWidth}; y: ${currentHeight}}`, bodyPath));
-                blockPathElements.push(Qt.createQmlObject(`import QtQuick; import QtQuick.Shapes; PathLine {x: ${bodyPath.startX + this.blockWidth + this.pinOffset + this.pinWidth / 2}; y: ${currentHeight + this.pinHeight}}`, bodyPath));
-                blockPathElements.push(Qt.createQmlObject(`import QtQuick; import QtQuick.Shapes; PathLine {x: ${bodyPath.startX + this.blockWidth + this.pinOffset}; y: ${currentHeight}}`, bodyPath));
-                blockPathElements.push(Qt.createQmlObject(`import QtQuick; import QtQuick.Shapes; PathLine {x: ${bodyPath.startX + this.blockWidth}; y: ${currentHeight}}`, bodyPath));
+                blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${blockInfo.contentWidth}; y: ${currentHeight}}`, bodyPath));
+                blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${bodyPath.startX + this.blockWidth + this.pinOffset + this.pinWidth}; y: ${currentHeight}}`, bodyPath));
+                blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${bodyPath.startX + this.blockWidth + this.pinOffset + this.pinWidth / 2}; y: ${currentHeight + this.pinHeight}}`, bodyPath));
+                blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${bodyPath.startX + this.blockWidth + this.pinOffset}; y: ${currentHeight}}`, bodyPath));
+                blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${bodyPath.startX + this.blockWidth}; y: ${currentHeight}}`, bodyPath));
                 currentHeight += blockInfo.blockHeight;
-                blockPathElements.push(Qt.createQmlObject(`import QtQuick; import QtQuick.Shapes; PathLine {x: ${bodyPath.startX + this.blockWidth}; y: ${currentHeight}}`, bodyPath));
+                blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${bodyPath.startX + this.blockWidth}; y: ${currentHeight}}`, bodyPath));
             });
         bodyPath.pathElements = blockPathElements.concat(this.basePathElements);
+        this.dynamicPathElements = blockPathElements;
         this.height = currentHeight + this.lastHeight;
+    }
+
+    function clearDynamicPathElements() {
+        while (this.dynamicPathElements.length) {
+            const pathElement = this.dynamicPathElements.pop();
+            pathElement.destroy();
+        }
     }
 }
