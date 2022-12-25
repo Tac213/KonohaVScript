@@ -24,8 +24,9 @@ def _create_getter(attr_name):
 def _create_setter(attr_name):
 
     def setter(self, value):
+        previous_value = getattr(self, f'_{attr_name}')
         setattr(self, f'_{attr_name}', value)
-        getattr(self, f'{attr_name}_changed').emit(getattr(self, f'_{attr_name}'))
+        getattr(self, f'{attr_name}_changed').emit(previous_value)
 
     return setter
 

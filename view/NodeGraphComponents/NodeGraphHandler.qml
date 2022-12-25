@@ -29,6 +29,7 @@ QtObject {
         argElement.width = expressionNode.width - expressionNode.wingWidth;
         argElement.height = expressionNode.height;
         argElement.enableSnap = false;
+        argElement.snappingExpressionNodeID = expressionNode.nodeID;
         let parentNode = argElement.getNode();
         parentNode.layoutContents();
         while (!parentNode.model.is_statement && parentNode.snapped) {
@@ -57,6 +58,7 @@ QtObject {
         expressionNode.y = scenePos.y + 20;  // make some offset
         expressionNode.snapped = false;
         argElement.enableSnap = true;
+        argElement.snappingExpressionNodeID = '';
         parentNode.model.remove_input_argument(argElement.argName);
         expressionNode.updateModelPos();
     }
