@@ -48,7 +48,7 @@ Item {
             "x": nodeModel.pos_x,
             "y": nodeModel.pos_y
         }, node => {
-            this.nodes[node.nodeID] = node;
+            this.nodes.set(node.nodeID, node);
         });
     }
 
@@ -61,6 +61,6 @@ Item {
     }
 
     function getNode(nodeID) {
-        return this.nodes[nodeID];
+        return this.nodes.get(nodeID);
     }
 }

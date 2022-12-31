@@ -21,6 +21,7 @@ class BaseNode(QtCore.QObject, metaclass=advanced_qt_property.QObjectMeta):  # p
 
     input_args = advanced_qt_property.AdvancedQtProperty('QVariant')  # type: typing.Dict[str, str]
     next_node_id = advanced_qt_property.AdvancedQtProperty(str)  # type: str
+    block_next_node_id = advanced_qt_property.AdvancedQtProperty('QVariant')  #type: typing.Dict[int, str]
     node_class_name = advanced_qt_property.AdvancedQtProperty(str)  # type: str
     node_id = advanced_qt_property.AdvancedQtProperty(str)  # type: str
     pos_x = advanced_qt_property.AdvancedQtProperty(float)  # type: float
@@ -34,6 +35,7 @@ class BaseNode(QtCore.QObject, metaclass=advanced_qt_property.QObjectMeta):  # p
         super().__init__(parent)
         self._input_args = {}
         self._next_node_id = ''
+        self._block_next_node_id = {}
         self._node_class_name = self.__class__.__name__
         self._node_id = ''
         self._pos_x = 0.0
@@ -51,3 +53,24 @@ class BaseNode(QtCore.QObject, metaclass=advanced_qt_property.QObjectMeta):  # p
     def remove_input_argument(self, arg_name) -> None:
         if arg_name in self._input_args:
             self._input_args.pop(arg_name)
+
+    @QtCore.Slot(int, str)
+    def add_block_next_node_id(self, block_index, node_id) -> None:
+        self._block_next_node_id[block_index] = node_id
+
+    @QtCore.Slot(int, str)
+    def remove_block_next_node_id(self, block_index, node_id) -> None:
+        if block_index in self._block_next_node_id and self._block_next_node_id[block_index] == node_id:
+            self._block_next_node_id.pop(block_index)
+        else:
+            remove_index = None
+            for index, candidate_node_id in self._block_next_node_id.items():
+                if candidate_node_id == node_id:
+                    remove_index = index
+                    break
+            if remove_index is not None:
+                self._block_next_node_id.pop(remove_index)
+
+    @QtCore.Slot()
+    def clear_block_next_node_id(self) -> None:
+        self._block_next_node_id.clear()

@@ -13,14 +13,15 @@ Item {
     property real contentXMargin: 15
     property real contentYMargin: 20
     property var blockInfos: []  // {contentWidth, contentHeight, blockHeight}
-    property var blockContents: []  // {index, contentTexts, contentArgs}
+    property var blockContents: []  // {index, contentTexts, contentArgs, snapIndicator}
     property var contentTexts: []
     property var contentArgs: []
     property real minimumWidth: 200
     property real minimumHeight: 100
-    property real minimumBlockHeight: 50
+    property real minimumBlockHeight: 40
     property bool snapped: false
     property string nextNodeID: ''
+    property var blockNextNodeID: new Map()
 
     Drag.active: mouseArea.drag.active
     Drag.hotSpot.x: this.wingWidth
@@ -39,6 +40,7 @@ Item {
     Component {
         id: statementSnapIndicator
         DropArea {
+            property bool isBlock: false
             x: 0
             height: 40
             keys: ['kvsStatement']
@@ -194,7 +196,9 @@ Item {
                     if (this.parent.model.is_statement) {
                         const upperNode = this.parent.Drag.target.getNode();  // call getNode function on DropArea
                         const lowerNode = this.parent;
-                        lowerNode.getHandler().snapStatement(upperNode, lowerNode);
+                        const isBlock = this.parent.Drag.target.isBlock;
+                        const blockIndex = this.parent.Drag.target.index;
+                        lowerNode.getHandler().snapStatement(upperNode, lowerNode, isBlock, blockIndex);
                     } else {
                         const contentArgElement = this.parent.Drag.target.parent;
                         const expressionNode = this.parent;
@@ -260,7 +264,8 @@ Item {
                 this.blockContents.push({
                         "index": index,
                         "contentTexts": [],
-                        "contentArgs": []
+                        "contentArgs": [],
+                        "snapIndicator": undefined
                     });
                 const parseResult = this.parseNodeDescription(blockDescription);
                 const textList = parseResult.textList;
@@ -294,6 +299,17 @@ Item {
                             total++;
                         }
                     });
+                new ComponentCreation.ComponentCreation('qrc:/view/NodeGraphComponents/Items/CodeBlockSnapIndicator.qml', root, {
+                    "index": index
+                }, snapIndicator => {
+                    snapIndicator.z = this.z - 1;
+                    this.blockContents[index].snapIndicator = snapIndicator;
+                    current++;
+                    if (current >= total) {
+                        this.layoutContents();
+                    }
+                });
+                total++;
             });
     }
 
@@ -338,6 +354,11 @@ Item {
                     }
                     argElement.destroy();
                 }
+                const snapIndicator = deletedBlockContent.snapIndicator;
+                if (snapIndicator.isSnappingStatementNode()) {
+                    this.getHandler().unsnapStatement(snapIndicator.getSnappingStatementNode());
+                }
+                snapIndicator.destroy();
                 deletedCount += 1;
             }
         }
@@ -355,10 +376,12 @@ Item {
                                 }
                             }
                             blockContent.index = moveRowInfo.currentIndex;
+                            blockContent.snapIndicator.index = moveRowInfo.currentIndex;
                             if (diffResult.deleteRows) {
                                 for (const deleteRowInfo of diffResult.deleteRows) {
                                     if (blockContent.index >= deleteRowInfo.index) {
                                         blockContent.index++;
+                                        blockContent.snapIndicator.index++;
                                     }
                                 }
                             }
@@ -366,6 +389,7 @@ Item {
                                 for (const newRowInfo of diffResult.newRows) {
                                     if (blockContent.index >= newRowInfo.index) {
                                         blockContent.index--;
+                                        blockContent.snapIndicator.index--;
                                     }
                                 }
                             }
@@ -378,6 +402,7 @@ Item {
                 for (const blockContent of this.blockContents) {
                     if (blockContent.index >= deleteRowInfo.index) {
                         blockContent.index--;
+                        blockContent.snapIndicator.index--;
                     }
                 }
             }
@@ -389,6 +414,7 @@ Item {
                 for (const blockContent of this.blockContents) {
                     if (blockContent.index >= newRowInfo.index) {
                         blockContent.index++;
+                        blockContent.snapIndicator.index++;
                     }
                 }
             }
@@ -398,7 +424,8 @@ Item {
                 this.blockContents.push({
                         "index": newRowInfo.index,
                         "contentTexts": [],
-                        "contentArgs": []
+                        "contentArgs": [],
+                        "snapIndicator": undefined
                     });
                 const blockContent = this.blockContents[this.blockContents.length - 1];
                 const parseResult = this.parseNodeDescription(newRowInfo.description);
@@ -433,6 +460,30 @@ Item {
                             total++;
                         }
                     });
+                new ComponentCreation.ComponentCreation('qrc:/view/NodeGraphComponents/Items/CodeBlockSnapIndicator.qml', root, {
+                    "index": blockContent.index
+                }, snapIndicator => {
+                    snapIndicator.z = this.z - 1;
+                    blockContent.snapIndicator = snapIndicator;
+                    current++;
+                    if (current >= total) {
+                        this.layoutContents();
+                    }
+                });
+                total++;
+            }
+        }
+        // handle snapIndicator index changed
+        this.blockNextNodeID.clear();
+        this.model.clear_block_next_node_id();
+        for (const blockContent of this.blockContents) {
+            const snapIndicator = blockContent.snapIndicator;
+            if (!snapIndicator) {
+                continue;
+            }
+            if (snapIndicator.snappingNodeID) {
+                this.blockNextNodeID.set(snapIndicator.index, snapIndicator.snappingNodeID);
+                this.model.add_block_next_node_id(snapIndicator.index, snapIndicator.snappingNodeID);
             }
         }
         if (!diffResult.diffRows && !hasNewRows) {
@@ -675,7 +726,21 @@ Item {
                     contentX += content.width;
                 }
                 height += handleResult.height;
-                blockInfo.blockHeight = this.minimumBlockHeight;  // TODO
+                const blockWidth = this.getBlockWidth();
+                blockContent.snapIndicator.x = this.wingWidth + blockWidth;
+                blockContent.snapIndicator.y = height;
+                blockContent.snapIndicator.width = blockInfo.contentWidth - blockWidth;
+                let blockHeight = this.minimumBlockHeight;
+                let nextNode = this.getBlockNextNode(index);
+                if (nextNode) {
+                    nextNode.y = height;
+                    nextNode.updateModelPos();
+                }
+                while (nextNode) {
+                    blockHeight += nextNode.height;
+                    nextNode = nextNode.getNextNode();
+                }
+                blockInfo.blockHeight = blockHeight;
                 height += blockInfo.blockHeight;
             });
         this.width = width;
@@ -842,6 +907,20 @@ Item {
         };
     }
 
+    function getBlockWidth() {
+        if (!this.model.is_code_block) {
+            return undefined;
+        }
+        return bodyLoader.item ? bodyLoader.item.blockWidth : 50;
+    }
+
+    function getBlockOffset() {
+        if (!this.model.is_code_block) {
+            return undefined;
+        }
+        return bodyLoader.item ? bodyLoader.item.blockOffset : 5;
+    }
+
     function getScene() {
         let candidate = this.parent;
         while (candidate) {
@@ -893,5 +972,17 @@ Item {
         }
         const scene = this.getScene();
         return scene.getNode(this.nextNodeID);
+    }
+
+    function getBlockNextNode(index) {
+        if (!this.model.is_code_block) {
+            return undefined;
+        }
+        const nextNodeID = this.blockNextNodeID.get(index);
+        if (!nextNodeID) {
+            return undefined;
+        }
+        const scene = this.getScene();
+        return scene.getNode(nextNodeID);
     }
 }

@@ -30,14 +30,18 @@ QtObject {
         argElement.height = expressionNode.height;
         argElement.enableSnap = false;
         argElement.snappingExpressionNodeID = expressionNode.nodeID;
-        let parentNode = argElement.getNode();
-        parentNode.layoutContents();
-        while (!parentNode.model.is_statement && parentNode.snapped) {
-            const parentArgElement = parentNode.parent;
-            parentArgElement.width = parentNode.width - parentNode.wingWidth;
-            parentArgElement.height = parentNode.height;
-            parentNode = parentNode.getSnappingNode();
-            parentNode.layoutContents();
+        let snappingNode = argElement.getNode();
+        snappingNode.layoutContents();
+        while (!snappingNode.model.is_statement && snappingNode.snapped) {
+            const parentArgElement = snappingNode.parent;
+            parentArgElement.width = snappingNode.width - snappingNode.wingWidth;
+            parentArgElement.height = snappingNode.height;
+            snappingNode = snappingNode.getSnappingNode();
+            snappingNode.layoutContents();
+        }
+        while (snappingNode) {
+            snappingNode.layoutContents();
+            snappingNode = snappingNode.getSnappingNode();
         }
         argElement.getNode().model.add_input_argument(argElement.argName, expressionNode.nodeID);
         expressionNode.updateModelPos();
@@ -63,7 +67,7 @@ QtObject {
         expressionNode.updateModelPos();
     }
 
-    function snapStatement(upperNode, lowerNode) {
+    function snapStatement(upperNode, lowerNode, isBlock, blockIndex) {
         if (!upperNode.model.is_statement || !lowerNode.model.is_statement) {
             return;
         }
@@ -71,12 +75,27 @@ QtObject {
             return;
         }
         lowerNode.parent = upperNode;
-        lowerNode.x = 0;
-        lowerNode.y = upperNode.height;
+        if (!isBlock) {
+            lowerNode.x = 0;
+            lowerNode.y = upperNode.height;
+            upperNode.nextNodeID = lowerNode.nodeID;
+            upperNode.model.next_node_id = lowerNode.nodeID;
+        } else {
+            const snapIndicator = upperNode.blockContents[blockIndex].snapIndicator;
+            lowerNode.x = snapIndicator.x + upperNode.getBlockOffset();
+            lowerNode.y = snapIndicator.y;
+            snapIndicator.snappingNodeID = lowerNode.nodeID;
+            upperNode.blockNextNodeID.set(blockIndex, lowerNode.nodeID);
+            upperNode.model.add_block_next_node_id(blockIndex, lowerNode.nodeID);
+            upperNode.layoutContents();
+        }
         lowerNode.snapped = true;
-        upperNode.nextNodeID = lowerNode.nodeID;
-        upperNode.model.next_node_id = lowerNode.nodeID;
         lowerNode.updateModelPos();
+        let snappingNode = upperNode.getSnappingNode();
+        while (snappingNode) {
+            snappingNode.layoutContents();
+            snappingNode = snappingNode.getSnappingNode();
+        }
     }
 
     function unsnapStatement(lowerNode) {
@@ -107,8 +126,33 @@ QtObject {
         lowerNode.x = scenePos.x + 20;  // make some offset
         lowerNode.y = scenePos.y + 20;  // make some offset
         lowerNode.snapped = false;
-        upperNode.nextNodeID = '';
-        upperNode.model.next_node_id = '';
+        if (upperNode.nextNodeID === lowerNode.nodeID) {
+            upperNode.nextNodeID = '';
+            upperNode.model.next_node_id = '';
+        } else {
+            let blockIndex;
+            for (const [index, nodeID] of upperNode.blockNextNodeID) {
+                if (nodeID === lowerNode.nodeID) {
+                    blockIndex = index;
+                    break;
+                }
+            }
+            if (blockIndex !== undefined) {
+                upperNode.blockNextNodeID.delete(blockIndex);
+                upperNode.model.remove_block_next_node_id(blockIndex, lowerNode.nodeID);
+            }
+            // blockIndex may be different from blockContents, iterate for accurate snapIndicator
+            let snapIndicator;
+            for (const blockContent of upperNode.blockContents) {
+                if (blockContent.snapIndicator.snappingNodeID === lowerNode.nodeID) {
+                    snapIndicator = blockContent.snapIndicator;
+                    break;
+                }
+            }
+            if (snapIndicator) {
+                snapIndicator.snappingNodeID = '';
+            }
+        }
         lowerNode.updateModelPos();
     }
 }

@@ -6,6 +6,8 @@ Shape {
     property real pinOffset: 30
     property real pinWidth: 32
     property real pinHeight: 16
+    property real blockOffset: 5
+    property real blockPinOffset: this.pinOffset + 20 + this.blockOffset  // 20 is wingWidth
     property real blockWidth: 50
     property real lastWidth: 100
     property real lastHeight: 30
@@ -82,9 +84,9 @@ Shape {
                 }
                 currentHeight += blockInfo.contentHeight;
                 blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${blockInfo.contentWidth}; y: ${currentHeight}}`, bodyPath));
-                blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${bodyPath.startX + this.blockWidth + this.pinOffset + this.pinWidth}; y: ${currentHeight}}`, bodyPath));
-                blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${bodyPath.startX + this.blockWidth + this.pinOffset + this.pinWidth / 2}; y: ${currentHeight + this.pinHeight}}`, bodyPath));
-                blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${bodyPath.startX + this.blockWidth + this.pinOffset}; y: ${currentHeight}}`, bodyPath));
+                blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${bodyPath.startX + this.blockWidth + this.blockPinOffset + this.pinWidth}; y: ${currentHeight}}`, bodyPath));
+                blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${bodyPath.startX + this.blockWidth + this.blockPinOffset + this.pinWidth / 2}; y: ${currentHeight + this.pinHeight}}`, bodyPath));
+                blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${bodyPath.startX + this.blockWidth + this.blockPinOffset}; y: ${currentHeight}}`, bodyPath));
                 blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${bodyPath.startX + this.blockWidth}; y: ${currentHeight}}`, bodyPath));
                 currentHeight += blockInfo.blockHeight;
                 blockPathElements.push(Qt.createQmlObject(`import QtQuick; PathLine {x: ${bodyPath.startX + this.blockWidth}; y: ${currentHeight}}`, bodyPath));
