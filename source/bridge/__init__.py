@@ -11,6 +11,7 @@ ALL_BRIDGE_MODULES = (
     'output_window_bridge',
     'syntax_highlighter',
     'node_class_helper',
+    'hierarchy_model',
 )
 
 output_window_bridge_object = None
